@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
 from moviepy.editor import *
 from gtts import gTTS
 import os
@@ -38,7 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 async def root():
     # text = "Hello, this is a test."
@@ -147,12 +148,14 @@ async def process_video(video_url: str, num_frames: int = 5):
                 video_url, output_frames_folder, num_frames)
         except Exception as e:
             print(f"Error capturing frames: {e}")
-
+        video_file = None
         if summary is not None and images is not None:
             video_generation = images_to_video("frames", 54, '.png', 'summary_video', '.mp4', summary) 
             if video_generation is not None and 'errors' in video_generation:
                 return JSONResponse(content={ "success": False, "errors": video_generation['errors']})
-        return JSONResponse(content={ "success": True,"summary": summary, "images": images})
+            else:
+                video_file = video_generation['video_file']
+        return JSONResponse(content={ "success": True,"summary": summary, "images": images, "video_file": video_file})
 
     except Exception as e:
         raise HTTPException(
@@ -203,8 +206,8 @@ def images_to_video(image_folder_path: str, fps, extension:str, video_name:str, 
         audio_clip_file = text_to_speech(summary)
         audio_clip = AudioFileClip(audio_clip_file)
         final_clip = video_clip.set_audio(audio_clip)
-        final_clip.write_videofile("youtube_v" + ".mp4")
-        return {"success": True, "message" : "Youtube Summary video created successfully"}
+        video_file = final_clip.write_videofile("static/youtube_v" + ".mp4")
+        return {"success": True, "message" : "Youtube Summary video created successfully", "video_file": "youtube_v.mp4"}
     except Exception as e:
         return {"success": False, "errors": f"Error creating video: {str(e)}"}
     
