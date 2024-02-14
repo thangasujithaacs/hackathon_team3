@@ -19,10 +19,23 @@ from hugchat.login import Login
 from hugchat import hugchat
 from hugchat.message import Message
 import openai
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
 app = FastAPI()
+
+
+
+# Allow all origins, methods, and headers for testing purposes.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 async def root():
