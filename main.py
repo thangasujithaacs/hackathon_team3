@@ -96,26 +96,7 @@ openai.api_key = openai_api_key
 async def root():
     return {"message": "Welcome"}
 
-@app.post("/generate_video")
-async def generate_video(request: Request) :
-    try:
-       return images_to_video('C:\\Users\\Admin\\projects\\hackathon_team3\\hackathon_team3\\images_new', 54, '.jpeg', 'Spectra_video', '.mp4')
-    except Exception as e:
-        return str(e)
-    
-def images_to_video(image_folder_path: str, fps, extension:str, video_name:str, output_format:str):
-    images = []
-    print(image_folder_path)
-    for img in os.listdir(image_folder_path):
-        images.append(img)
-    images = ['0.jpg', '11.jpg']
-    movie_clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(images, fps)
-    movie_clip.write_videofile(video_name+output_format)
-    video_clip = VideoFileClip("Spectra_video.mp4")
-    audio_clip = AudioFileClip("output.mp3")
-    final_clip = video_clip.set_audio(audio_clip)
-    final_clip.write_videofile("youtube_v" + ".mp4")	
-    
+
 @app.get("/process_video")
 async def process_video(video_url: str, num_frames: int = 5):
     try:
@@ -167,6 +148,10 @@ async def process_video(video_url: str, num_frames: int = 5):
         except Exception as e:
             print(f"Error capturing frames: {e}")
 
+        if summary is not None and images is not None:
+            video_generation = images_to_video("frames", 54, '.png', 'summary_video', '.mp4', summary) 
+            if video_generation is not None and 'errors' in video_generation:
+                return JSONResponse(content={ "success": False, "errors": video_generation['errors']})
         return JSONResponse(content={ "success": True,"summary": summary, "images": images})
 
     except Exception as e:
@@ -197,3 +182,29 @@ def capture_frames(video_url, output_folder='frames', num_frames=5):
         print(f"Error capturing frames: {e}")
 
     return image_paths
+
+def text_to_speech(text):
+    # Initialize gTTS with the text to convert
+    speech = gTTS(text)
+
+    # Save the audio file to a temporary file
+    audio_file = 'summery_audio.mp3'
+    speech.save(audio_file)
+
+    # Play the audio file
+    return audio_file
+
+def images_to_video(image_folder_path: str, fps, extension:str, video_name:str, output_format:str, summary:str):
+    try:
+        movie_clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_folder_path, fps)
+        movie_clip.write_videofile(video_name+output_format)
+        video_clip = VideoFileClip("summary_video.mp4")
+        #audio file
+        audio_clip_file = text_to_speech(summary)
+        audio_clip = AudioFileClip(audio_clip_file)
+        final_clip = video_clip.set_audio(audio_clip)
+        final_clip.write_videofile("youtube_v" + ".mp4")
+        return {"success": True, "message" : "Youtube Summary video created successfully"}
+    except Exception as e:
+        return {"success": False, "errors": f"Error creating video: {str(e)}"}
+    
