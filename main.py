@@ -188,7 +188,7 @@ def capture_frames(video_url, output_folder='frames', num_frames=5):
 
 def text_to_speech(text):
     # Initialize gTTS with the text to convert
-    speech = gTTS(text)
+    speech = gTTS(text);
 
     # Save the audio file to a temporary file
     audio_file = 'summery_audio.mp3'
