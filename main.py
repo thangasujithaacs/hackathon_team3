@@ -191,7 +191,8 @@ def text_to_speech(text):
     speech = gTTS(text);
 
     # Save the audio file to a temporary file
-    audio_file = 'summery_audio1.mp3'
+    import uuid
+    audio_file = f'summary_audio_{uuid.uuid4()}.mp3'
     speech.save(audio_file)
 
     # Play the audio file
