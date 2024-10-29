@@ -202,6 +202,8 @@ def images_to_video(image_folder_path: str, fps, extension:str, video_name:str, 
         movie_clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_folder_path, fps)
         movie_clip.write_videofile(video_name+output_format)
         video_clip = VideoFileClip("summary_video.mp4")
+        if video_clip is None:
+            print("Video is not there")
         #audio file
         audio_clip_file = text_to_speech(summary)
         audio_clip = AudioFileClip(audio_clip_file)
